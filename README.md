@@ -2,7 +2,7 @@
 <img style="width: 100%; max-width: 100%;" alt="filament-shield-art" src="https://user-images.githubusercontent.com/10007504/148662315-35d4bd74-fc1c-4f8c-8c02-689309b414b0.png" >
 </a>
 
-<p align="center" class="flex items-center justify-center">
+<p align="center" class="flex justify-center items-center">
     <a href="https://filamentadmin.com/docs/2.x/admin/installation">
         <img alt="FILAMENT 8.x" src="https://img.shields.io/badge/FILAMENT-3.x-EBB304?style=for-the-badge">
     </a>
@@ -25,6 +25,15 @@
 
 The easiest and most intuitive way to add access management to your Filament Panels.
 
+> [!WARNING]
+> **Heads Up! This is a Pre-release (Beta) Version**
+>
+> This package is currently in active development and tied closely to **FilamentPHP v4 pre-release**. As the core API continues to evolve, **expect breaking changes** and frequent updates.
+>
+> We're moving fast and iterating often — so if you're using this in your project, please do so with caution and **at your own discretion**.
+>
+> Feedback and contributions are welcome as we move toward a stable release!.
+
 ## Features
 
 - 🛡️ **Complete Authorization Management**
@@ -45,6 +54,9 @@ The easiest and most intuitive way to add access management to your Filament Pan
 | [2.x](https://github.com/bezhanSalleh/filament-shield/tree/2.x)             | 2.x              |
 | **3.x**            | **3.x**             |
 | [4.x](https://github.com/bezhanSalleh/filament-shield/tree/4.x)             | 4.x              |
+| [3.x](https://github.com/bezhanSalleh/filament-shield/tree/3.x)            | 3.x             |
+| **4.x**             | **4.x**              |
+
 
 <div class="filament-hidden">
 <b>Table of Contents</b>
@@ -169,7 +181,7 @@ Or instead of the above command you can register the plugin and enable tenancy m
 This command will:
 - Register Shield plugin for your panel
 - If `--tenant` flag is provided:
-  - Activates tenancy features 
+  - Activates tenancy features
   - Makes the panel tenantable
   - Adds `SyncShieldTenant` middleware to the panel
   - Configures tenant model from the config
@@ -186,7 +198,7 @@ See [config/filament-shield.php](config/filament-shield.php) for full configurat
 Generally there are two scenarios that shield handles permissions for your `Filament` resources.
 
 ##### Default
-Out of the box `Shield` handles the predefined permissions for `Filament` resources. So if that's all that you need you are all set. 
+Out of the box `Shield` handles the predefined permissions for `Filament` resources. So if that's all that you need you are all set.
 If you need to add a single permission (for instance `lock`) and have it available for all your resources just append it to the following `config` key:
 
 ```php
@@ -213,7 +225,7 @@ If you need to add a single permission (for instance `lock`) and have it availab
 No worries, that's where [Custom Permissions](#custom-permissions) come to play.
 
 ##### Custom Permissions
-To define custom permissions per `Resource` your `Resource` must implement the `HasShieldPermissions` contract.
+1. To define custom permissions per `Resource` your `Resource` must implement the `HasShieldPermissions` contract.
 This contract has a `getPermissionPrefixes()` method which returns an array of permission prefixes for your `Resource`.
 
 Consider you have a `PostResource` and you want a couple of the predefined permissions plus a new permission called `publish_posts` to be only available for `PostResource` only.
@@ -259,17 +271,17 @@ In the above example the `getPermissionPrefixes()` method returns the permission
     public function publish(User $user)
     {
         return $user->can('publish_post');
-    } 
+    }
 ```
 🅰️/🈯️ To make the prefix translatable, publish `Shield`'s translations and append the prefix inside `resource_permission_prefixes_labels` as key and it's translation as value for the languages you need.
 ```php
 //lang/en/filament-shield.php
 'resource_permission_prefixes_labels' => [
-    'publish' => 'Publish'    
+    'publish' => 'Publish'
 ],
 //lang/es/filament-shield.php
 'resource_permission_prefixes_labels' => [
-    'publish' => 'Publicar'    
+    'publish' => 'Publicar'
 ],
 ```
 #### Third-Party Plugins Permissions
@@ -289,10 +301,34 @@ To generate permissions for third-party plugins, or if you don't want to change 
         'page' => 'page',
         'widget' => 'widget',
     ],
-``` 
+```
 
 
+2. **Generate permissions for your resources or third-party plugins** without touching the `Resource` class. Using the `PostResource` example above, you can set it up like so:
 
+```php
+'permission_prefixes' => [
+       \App\Filament\Resources\PostResource::class => [
+            'view',
+            'view_any',
+            'create',
+            'update',
+            'delete',
+            'delete_any',
+            'publish', // custom permission
+        ],
+        \Tapp\FilamentAuthenticationLog\Resources\AuthenticationLogResource::class => [ // third-party plugin resource
+            'view_any',
+        ],
+
+        'resource' => [
+         ...
+        ],
+
+        'page' => 'page',
+        'widget' => 'widget',
+    ],
+```
 ##### Configure Permission Identifier
 By default the permission identifier is generated as follow:
 ```php
@@ -383,7 +419,7 @@ class MyPage extends Page
 
     /**
      * Hook to perform an action before redirect if the user
-     * doesn't have access to the page.  
+     * doesn't have access to the page.
      * */
     protected function beforeShieldRedirects() : void {
         ...
@@ -446,7 +482,7 @@ If your policies are not in the default `Policies` directory in the `app_path()`
 ...
 ```
 
-#### Policy Discovery 
+#### Policy Discovery
 
 Got a ton of policies inside subdirectories? Have to manually register them! right?
 
@@ -511,7 +547,7 @@ Forms\Components\Select::make('roles')
     ->multiple()
     ->preload()
     ->searchable(),
-                    
+
 // Using CheckboxList Component
 Forms\Components\CheckboxList::make('roles')
     ->relationship('roles', 'name')
@@ -617,17 +653,17 @@ shield:publish {panel}
 --all                    Generate for all entities
 --option=[OPTION]        Override generator option
 --resource=[RESOURCE]    Specific resources
---page=[PAGE]            Specific pages  
+--page=[PAGE]            Specific pages
 --widget=[WIDGET]        Specific widgets
 --exclude                Exclude entities
 --ignore-config-exclude  Ignore config excludes
 --panel[=PANEL]          Panel ID to get the components(resources, pages, widgets)
 --relationships          Generate relationships for the given panel, only works if the panel has tenancy enabled
 ```
-> [!NOTE] 
+> [!NOTE]
 > For setting up super-admin user when using tenancy/team feature consult the core package **[spatie/laravel-permission](https://spatie.be/docs/laravel-permission/v6/basic-usage/teams-permissions)**
 
-#### Translations 
+#### Translations
 
 Publish the translations using:
 

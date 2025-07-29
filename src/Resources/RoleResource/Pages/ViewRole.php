@@ -3,7 +3,7 @@
 namespace BezhanSalleh\FilamentShield\Resources\RoleResource\Pages;
 
 use BezhanSalleh\FilamentShield\Resources\RoleResource;
-use Filament\Actions;
+use Filament\Actions\EditAction;
 use Filament\Resources\Pages\ViewRecord;
 
 class ViewRole extends ViewRecord
@@ -13,7 +13,7 @@ class ViewRole extends ViewRecord
     protected function getActions(): array
     {
         return [
-            Actions\EditAction::make(),
+            EditAction::make(),
         ];
     }
 }

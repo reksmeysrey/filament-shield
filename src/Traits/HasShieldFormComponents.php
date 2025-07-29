@@ -7,16 +7,24 @@ namespace BezhanSalleh\FilamentShield\Traits;
 use BezhanSalleh\FilamentShield\Facades\FilamentShield;
 use BezhanSalleh\FilamentShield\FilamentShieldPlugin;
 use BezhanSalleh\FilamentShield\Support\Utils;
-use Filament\Forms;
-use Filament\Forms\Components\Component;
+use Filament\Actions\Action;
+use Filament\Forms\Components\CheckboxList;
+use Filament\Forms\Components\Toggle;
+use Filament\Schemas\Components\Component;
+use Filament\Schemas\Components\Grid;
+use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Tabs;
+use Filament\Schemas\Components\Tabs\Tab;
+use Filament\Schemas\Components\Utilities\Set;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\HtmlString;
+use Livewire\Component as Livewire;
 
 trait HasShieldFormComponents
 {
     public static function getShieldFormComponents(): Component
     {
-        return Forms\Components\Tabs::make('Permissions')
+        return Tabs::make('Permissions')
             ->contained()
             ->tabs([
                 static::getTabFormComponentForResources(),
@@ -38,7 +46,7 @@ trait HasShieldFormComponents
                     : $entity['model']
                 );
 
-                return Forms\Components\Section::make($sectionLabel)
+                return Section::make($sectionLabel)
                     ->description(fn () => new HtmlString('<span style="word-break: break-word;">' . Utils::showModelPath($entity['fqcn']) . '</span>'))
                     ->compact()
                     ->schema([
@@ -127,12 +135,12 @@ trait HasShieldFormComponents
     {
         return static::shield()->hasSimpleResourcePermissionView()
             ? static::getTabFormComponentForSimpleResourcePermissionsView()
-            : Forms\Components\Tabs\Tab::make('resources')
+            : Tab::make('resources')
                 ->label(__('filament-shield::filament-shield.resources'))
                 ->visible(fn (): bool => (bool) Utils::isResourceEntityEnabled())
                 ->badge(static::getResourceTabBadgeCount())
                 ->schema([
-                    Forms\Components\Grid::make()
+                    Grid::make()
                         ->schema(static::getResourceEntitiesSchema())
                         ->columns(static::shield()->getGridColumns()),
                 ]);
@@ -156,7 +164,7 @@ trait HasShieldFormComponents
         $options = static::getPageOptions();
         $count = count($options);
 
-        return Forms\Components\Tabs\Tab::make('pages')
+        return Tab::make('pages')
             ->label(__('filament-shield::filament-shield.pages'))
             ->visible(fn (): bool => (bool) Utils::isPageEntityEnabled() && $count > 0)
             ->badge($count)
@@ -173,7 +181,7 @@ trait HasShieldFormComponents
         $options = static::getWidgetOptions();
         $count = count($options);
 
-        return Forms\Components\Tabs\Tab::make('widgets')
+        return Tab::make('widgets')
             ->label(__('filament-shield::filament-shield.widgets'))
             ->visible(fn (): bool => (bool) Utils::isWidgetEntityEnabled() && $count > 0)
             ->badge($count)
@@ -190,7 +198,7 @@ trait HasShieldFormComponents
         $options = static::getCustomPermissionOptions();
         $count = count($options);
 
-        return Forms\Components\Tabs\Tab::make('custom')
+        return Tab::make('custom')
             ->label(__('filament-shield::filament-shield.custom'))
             ->visible(fn (): bool => (bool) Utils::isCustomPermissionEntityEnabled() && $count > 0)
             ->badge($count)
@@ -207,7 +215,7 @@ trait HasShieldFormComponents
         $options = FilamentShield::getAllResourcePermissions();
         $count = count($options);
 
-        return Forms\Components\Tabs\Tab::make('resources')
+        return Tab::make('resources')
             ->label(__('filament-shield::filament-shield.resources'))
             ->visible(fn (): bool => (bool) Utils::isResourceEntityEnabled() && $count > 0)
             ->badge($count)
@@ -221,18 +229,47 @@ trait HasShieldFormComponents
 
     public static function getCheckboxListFormComponent(string $name, array $options, bool $searchable = true, array | int | string | null $columns = null, array | int | string | null $columnSpan = null): Component
     {
-        return Forms\Components\CheckboxList::make($name)
+        return CheckboxList::make($name)
             ->label('')
             ->options(fn (): array => $options)
             ->searchable($searchable)
-            ->afterStateHydrated(
-                fn (Component $component, string $operation, ?Model $record) => static::setPermissionStateForRecordPermissions(
+            ->live()
+            ->afterStateHydrated(function (Component $component, string $operation, ?Model $record, Set $set) use ($options): void {
+                static::setPermissionStateForRecordPermissions(
                     component: $component,
                     operation: $operation,
                     permissions: $options,
                     record: $record
-                )
-            )
+                );
+
+                static::toggleSelectAllViaEntities($component->getLivewire(), $set);
+            })
+            ->afterStateUpdated(function (Livewire $livewire, Set $set): void {
+                static::toggleSelectAllViaEntities($livewire, $set);
+            })
+            ->selectAllAction(fn (
+                Action $action,
+                Component $component,
+                Livewire $livewire,
+                Set $set
+            ) => static::bulkToggleableAction(
+                action: $action,
+                component: $component,
+                livewire: $livewire,
+                set: $set
+            ))
+            ->deselectAllAction(fn (
+                Action $action,
+                Component $component,
+                Livewire $livewire,
+                Set $set
+            ) => static::bulkToggleableAction(
+                action: $action,
+                component: $component,
+                livewire: $livewire,
+                set: $set,
+                resetState: true
+            ))
             ->dehydrated(fn ($state) => ! blank($state))
             ->bulkToggleable()
             ->gridDirection('row')
@@ -243,5 +280,70 @@ trait HasShieldFormComponents
     public static function shield(): FilamentShieldPlugin
     {
         return FilamentShieldPlugin::get();
+    }
+
+    public static function getSelectAllFormComponent(): Component
+    {
+        return Toggle::make('select_all')
+            ->onIcon('heroicon-s-shield-check')
+            ->offIcon('heroicon-s-shield-exclamation')
+            ->label(__('filament-shield::filament-shield.field.select_all.name'))
+            ->helperText(fn (
+            ): HtmlString => new HtmlString(__('filament-shield::filament-shield.field.select_all.message')))
+            ->live()
+            ->afterStateUpdated(function (Livewire $livewire, Set $set, bool $state): void {
+                static::toggleEntitiesViaSelectAll($livewire, $set, $state);
+            })
+            ->dehydrated(fn (bool $state): bool => $state);
+    }
+
+    public static function toggleSelectAllViaEntities(Livewire $livewire, Set $set): void
+    {
+        /** @phpstan-ignore-next-line */
+        $entitiesStates = collect($livewire->form->getFlatComponents())
+            ->reduce(function (mixed $counts, Component $component) {
+                if ($component instanceof CheckboxList) {
+                    //  $component->callAfterStateHydrated();
+                    $counts[$component->getName()] = count(array_keys($component->getOptions())) == count(collect($component->getState())->values()->unique()->toArray());
+                }
+
+                return $counts;
+            }, collect())
+            ->values();
+        if ($entitiesStates->containsStrict(false)) {
+            $set('select_all', false);
+        } else {
+            $set('select_all', true);
+        }
+    }
+
+    public static function toggleEntitiesViaSelectAll(Livewire $livewire, Set $set, bool $state): void
+    {
+        /** @phpstan-ignore-next-line */
+        $entitiesComponents = collect($livewire->form->getFlatComponents())
+            ->filter(fn (Component $component): bool => $component instanceof CheckboxList);
+
+        if ($state) {
+            $entitiesComponents
+                ->each(
+                    function (CheckboxList $component) use ($set) {
+                        $set($component->getName(), array_keys($component->getOptions()));
+                    }
+                );
+        } else {
+            $entitiesComponents
+                ->each(fn (CheckboxList $component) => $component->state([]));
+        }
+    }
+
+    public static function bulkToggleableAction(Action $action, Component $component, Livewire $livewire, Set $set, bool $resetState = false): void
+    {
+        $action
+            ->livewireClickHandlerEnabled(true)
+            ->action(function () use ($component, $livewire, $set, $resetState) {
+                /** @phpstan-ignore-next-line */
+                $component->state($resetState ? [] : array_keys($component->getOptions()));
+                static::toggleSelectAllViaEntities($livewire, $set);
+            });
     }
 }
