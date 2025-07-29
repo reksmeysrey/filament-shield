@@ -17,6 +17,7 @@ class GenerateCommand extends Command
 {
     use Concerns\CanBeProhibitable;
     use Concerns\CanGeneratePolicy;
+    use Concerns\CanGenerateRelationshipsForTenancy;
     use Concerns\CanManipulateFiles;
 
     /**
@@ -62,6 +63,7 @@ class GenerateCommand extends Command
         {--minimal : Output minimal amount of info to console}
         {--ignore-existing-policies : Ignore generating policies that already exist }
         {--panel= : Panel ID to get the components(resources, pages, widgets)}
+        {--relationships : Generate relationships for the given panel, only works if the panel has tenancy enabled}
     ';
 
     /** @var string */
@@ -109,6 +111,11 @@ class GenerateCommand extends Command
         }
 
         $this->resetConfigExclusionCondition($this->ignoreConfigExclude);
+
+        if (Filament::hasTenancy() && Utils::isTenancyEnabled() && ($this->option('relationships') || $this->option('all'))) {
+            $this->generateRelationships(Filament::getPanel($panel));
+            $this->components->info('Successfully generated relationships for the given panel.');
+        }
 
         return Command::SUCCESS;
     }

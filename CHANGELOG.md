@@ -2,6 +2,53 @@
 
 All notable changes to `filament-shield` will be documented in this file.
 
+## 3.3.9 - 2025-07-10
+
+### What's Changed
+
+* Fix typo in Spanish translation for force delete action by @jimmiroblescasanova in https://github.com/bezhanSalleh/filament-shield/pull/557
+* feat: add danish translations by @m-stilling in https://github.com/bezhanSalleh/filament-shield/pull/563
+* feat: include editTenantProfile page in permission generation by @jimmiroblescasanova in https://github.com/bezhanSalleh/filament-shield/pull/568
+
+### New Contributors
+
+* @jimmiroblescasanova made their first contribution in https://github.com/bezhanSalleh/filament-shield/pull/557
+* @m-stilling made their first contribution in https://github.com/bezhanSalleh/filament-shield/pull/563
+
+**Full Changelog**: https://github.com/bezhanSalleh/filament-shield/compare/3.3.8...3.3.9
+
+## 3.3.8 - 2025-06-18
+
+### What's Changed
+
+* [Fix:v3] relationship generation by @bezhanSalleh in https://github.com/bezhanSalleh/filament-shield/pull/556
+* docs: updated readme with third party plugins permissions by @carloeusebi in https://github.com/bezhanSalleh/filament-shield/pull/553
+* Bump stefanzweifel/git-auto-commit-action from 5 to 6 by @dependabot in https://github.com/bezhanSalleh/filament-shield/pull/554
+
+**Full Changelog**: https://github.com/bezhanSalleh/filament-shield/compare/3.3.7...3.3.8
+
+## 3.3.7 - 2025-06-11
+
+### What's Changed
+
+* Bump dependabot/fetch-metadata from 2.3.0 to 2.4.0 by @dependabot in https://github.com/bezhanSalleh/filament-shield/pull/540
+* [Fix] widget permissions on super admin by @Dimas-Saputra-Me in https://github.com/bezhanSalleh/filament-shield/pull/539
+* Update Polish translation by @WierzbickiKrzysztof in https://github.com/bezhanSalleh/filament-shield/pull/532
+* Switch Negated Ternary in RoleResource by @alisalehi1380 in https://github.com/bezhanSalleh/filament-shield/pull/542
+* Feat: Improve custom permissions for third party packages. by @carloeusebi in https://github.com/bezhanSalleh/filament-shield/pull/547
+* [Fix] allow Resource to be part of the Filament Resource name by @haugen86 in https://github.com/bezhanSalleh/filament-shield/pull/549
+* [Fix] Commands for auto setup/installtion to be cross-os compatible by @bezhanSalleh in https://github.com/bezhanSalleh/filament-shield/pull/552
+
+### New Contributors
+
+* @Dimas-Saputra-Me made their first contribution in https://github.com/bezhanSalleh/filament-shield/pull/539
+* @WierzbickiKrzysztof made their first contribution in https://github.com/bezhanSalleh/filament-shield/pull/532
+* @alisalehi1380 made their first contribution in https://github.com/bezhanSalleh/filament-shield/pull/542
+* @carloeusebi made their first contribution in https://github.com/bezhanSalleh/filament-shield/pull/547
+* @haugen86 made their first contribution in https://github.com/bezhanSalleh/filament-shield/pull/549
+
+**Full Changelog**: https://github.com/bezhanSalleh/filament-shield/compare/3.3.6...3.3.7
+
 ## 3.3.6 - 2025-05-03
 
 ### What's Changed

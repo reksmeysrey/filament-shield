@@ -136,9 +136,10 @@ class Utils
         }
     }
 
-    public static function getGeneralResourcePermissionPrefixes(): array
+    public static function getGeneralResourcePermissionPrefixes(string $resourceFQCN): array
     {
-        return config('filament-shield.permission_prefixes.resource');
+        return config("filament-shield.permission_prefixes.$resourceFQCN") ??
+            config('filament-shield.permission_prefixes.resource');
     }
 
     public static function getPagePermissionPrefix(): string
@@ -245,7 +246,7 @@ class Utils
     {
         return static::doesResourceHaveCustomPermissions($resourceFQCN)
             ? $resourceFQCN::getPermissionPrefixes()
-            : static::getGeneralResourcePermissionPrefixes();
+            : static::getGeneralResourcePermissionPrefixes($resourceFQCN);
     }
 
     public static function getRoleModel(): string
