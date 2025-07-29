@@ -2,6 +2,13 @@
 
 namespace BezhanSalleh\FilamentShield;
 
+use BezhanSalleh\FilamentShield\Commands\GenerateCommand;
+use BezhanSalleh\FilamentShield\Commands\InstallCommand;
+use BezhanSalleh\FilamentShield\Commands\PublishCommand;
+use BezhanSalleh\FilamentShield\Commands\SeederCommand;
+use BezhanSalleh\FilamentShield\Commands\SetupCommand;
+use BezhanSalleh\FilamentShield\Commands\SuperAdminCommand;
+use BezhanSalleh\FilamentShield\Concerns\HasAboutCommand;
 use BezhanSalleh\FilamentShield\Support\Utils;
 use Illuminate\Support\Facades\Gate;
 use Spatie\LaravelPackageTools\Package;
@@ -9,15 +16,22 @@ use Spatie\LaravelPackageTools\PackageServiceProvider;
 
 class FilamentShieldServiceProvider extends PackageServiceProvider
 {
-    use Concerns\HasAboutCommand;
+    use HasAboutCommand;
 
+    public static string $name = 'filament-shield';
+
+    public static string $viewNamespace = 'filament-shield';
+
+    /** {@inheritDoc} */
     public function configurePackage(Package $package): void
     {
+        /**
+         * @var Package $package
+         */
         $package
-            ->name('filament-shield')
+            ->name(static::$name)
             ->hasConfigFile()
             ->hasTranslations()
-            ->hasViews()
             ->hasCommands($this->getCommands());
     }
 
@@ -37,7 +51,7 @@ class FilamentShieldServiceProvider extends PackageServiceProvider
         $this->initAboutCommand();
 
         if (Utils::isSuperAdminDefinedViaGate()) {
-            Gate::{Utils::getSuperAdminGateInterceptionStatus()}(function ($user, $ability) {
+            Gate::{Utils::getSuperAdminGateInterceptionStatus()}(function (object $user, string $ability): ?bool {
                 return match (Utils::getSuperAdminGateInterceptionStatus()) {
                     'before' => $user->hasRole(Utils::getSuperAdminName()) ? true : null,
                     'after' => $user->hasRole(Utils::getSuperAdminName()),
@@ -51,15 +65,18 @@ class FilamentShieldServiceProvider extends PackageServiceProvider
         }
     }
 
+    /**
+     * @return array<class-string>
+     */
     protected function getCommands(): array
     {
         return [
-            Commands\GenerateCommand::class,
-            Commands\InstallCommand::class,
-            Commands\PublishCommand::class,
-            Commands\SeederCommand::class,
-            Commands\SetupCommand::class,
-            Commands\SuperAdminCommand::class,
+            GenerateCommand::class,
+            InstallCommand::class,
+            PublishCommand::class,
+            SeederCommand::class,
+            SetupCommand::class,
+            SuperAdminCommand::class,
         ];
     }
 }

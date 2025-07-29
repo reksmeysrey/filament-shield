@@ -2,6 +2,7 @@
 
 namespace BezhanSalleh\FilamentShield\Commands;
 
+use BezhanSalleh\FilamentShield\Commands\Concerns\CanManipulateFiles;
 use BezhanSalleh\FilamentShield\Support\Utils;
 use Illuminate\Console\Command;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -9,7 +10,7 @@ use Symfony\Component\Console\Attribute\AsCommand;
 #[AsCommand(name: 'shield:seeder')]
 class SeederCommand extends Command
 {
-    use Concerns\CanManipulateFiles;
+    use CanManipulateFiles;
 
     /**
      * The console command signature.
@@ -57,7 +58,7 @@ class SeederCommand extends Command
 
         if ((Utils::getRoleModel()::exists() && is_null($option)) || $option === 'permissions_via_roles') {
             $permissionsViaRoles = collect(Utils::getRoleModel()::with('permissions')->get())
-                ->map(function ($role) use ($directPermissionNames) {
+                ->map(function (object $role) use ($directPermissionNames): array {
                     $rolePermissions = $role->permissions
                         ->pluck('name')
                         ->toArray();
@@ -74,8 +75,8 @@ class SeederCommand extends Command
 
         if ((Utils::getPermissionModel()::exists() && is_null($option)) || $option === 'direct_permissions') {
             $directPermissions = collect(Utils::getPermissionModel()::get())
-                ->filter(fn ($permission) => ! in_array($permission->name, $directPermissionNames->unique()->flatten()->all()))
-                ->map(fn ($permission) => [
+                ->filter(fn (object $permission): bool => ! in_array($permission->name, $directPermissionNames->unique()->flatten()->all()))
+                ->map(fn (object $permission): array => [
                     'name' => $permission->name,
                     'guard_name' => $permission->guard_name,
                 ]);
